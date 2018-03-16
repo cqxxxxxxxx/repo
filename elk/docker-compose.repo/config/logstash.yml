@@ -3,10 +3,13 @@ path.config: /usr/share/logstash/pipeline
 # PIPELINE_WORKERS: pipeline.workers
 # LOG_LEVEL: log.level
 # XPACK_MONITORING_ENABLED: xpack.monitoring.enabled
-xpack:
-  monitoring:
-    elasticsearch:
-      url: http://111.231.200.131:9200
-      username: logstash_system
-      password: cqx534
+xpack.monitoring.elasticsearch.url: http://111.231.200.131:9200
+xpack.monitoring.elasticsearch.username: elastic
+xpack.monitoring.elasticsearch.password: cqx534
+#xpack:
+#  monitoring:
+#    elasticsearch:
+#      url: http://111.231.200.131:9200
+#      username: elastic
+#      password: cqx534
 
