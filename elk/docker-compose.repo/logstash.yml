@@ -1,6 +1,6 @@
 version: '2'
 services:
-  kibana:
+  logstash:
     image: docker.elastic.co/logstash/logstash:6.2.2
     volumes:
       - ./config/logstash.yml:/usr/share/logstash/config/logstash.yml
