@@ -1,0 +1,11 @@
+filebeat.prospectors:
+- type: log
+  paths:
+    - /root/git.repo/logstash-tutorial.log
+output.logstash:
+  hosts: ["localhost:5044"]
+
+setup.kibana:
+  host: 111.231.200.131:5601
+  username: elastic
+  password: cqx534

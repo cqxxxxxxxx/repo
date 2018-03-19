@@ -1,7 +1,10 @@
 version: '2'
 services:
-  kibana:
-    image: docker.elastic.co/logstash/logstash:6.2.2
+  logstash:
+#    image: docker.elastic.co/logstash/logstash:6.2.2
+    build:
+      context: ./dockerfile
+      dockerfile: Dockerfile
     volumes:
       - ./config/logstash.yml:/usr/share/logstash/config/logstash.yml
       - ./config/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
@@ -9,4 +12,5 @@ services:
       LS_JAVA_OPTS: -Xmx256m -Xms256m
     ports:
       - 5000:5000
+      - 5044:5044
 
