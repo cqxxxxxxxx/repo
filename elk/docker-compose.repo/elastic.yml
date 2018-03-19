@@ -28,5 +28,6 @@ volumes:
     driver: local
 
 networks:
-  esnet:    
+  esnet:
+    driver: bridge  
 
