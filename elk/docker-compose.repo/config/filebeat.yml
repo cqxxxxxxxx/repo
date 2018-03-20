@@ -8,4 +8,4 @@ output.logstash:
 setup.kibana:
   host: 111.231.200.131:5601
   username: elastic
-  password: cqx534
+  password: abcdefg

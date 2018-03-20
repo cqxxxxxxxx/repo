@@ -2,7 +2,7 @@ http.host: 0.0.0.0
 path.config: /usr/share/logstash/pipeline
 xpack.monitoring.elasticsearch.url: http://elasticsearch:9200
 xpack.monitoring.elasticsearch.username: elastic
-xpack.monitoring.elasticsearch.password: cqx534
+xpack.monitoring.elasticsearch.password: abcdefg
 # PIPELINE_WORKERS: pipeline.workers
 # LOG_LEVEL: log.level
 # XPACK_MONITORING_ENABLED: xpack.monitoring.enabled
