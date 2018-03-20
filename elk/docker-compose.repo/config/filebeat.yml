@@ -3,7 +3,7 @@ filebeat.prospectors:
   paths:
     - /root/git.repo/logstash-tutorial.log
 output.logstash:
-  hosts: ["localhost:5044"]
+  hosts: ["logstash:5044"]
 
 setup.kibana:
   host: 111.231.200.131:5601
