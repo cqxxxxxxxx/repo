@@ -4,4 +4,5 @@ services:
     image: docker.elastic.co/beats/filebeat:6.2.2
     volumes:
       - ./config/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
-
+#挂载你要监听的日志文件或者文件夹到容器中，容器启动后filebeat监听的路径是容器中的路径
+      - /root/repo/elk/logstash-tutorial.log:/usr/share/filebeat/logstash-tutorial.log
