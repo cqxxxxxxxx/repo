@@ -1,5 +1,5 @@
 filebeat.prospectors:
-- type: log
+- type: admin-log
   paths:
     - /root/git.repo/logstash-tutorial.log
 output.logstash:
