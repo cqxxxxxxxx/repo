@@ -13,23 +13,28 @@ A multi-agent code review system running in VS Code GitHub Copilot. The system p
 ## File Structure
 
 ```
-.github/
-└── agents/
-    ├── main.agent.md           # Main entry point, orchestration
-    ├── quality-review.agent.md # General code quality review
-    ├── sql-review.agent.md     # SQL file review
-    ├── sp-review.agent.md      # Stored procedure review
-    ├── requirement-review.agent.md  # Requirement alignment review
-    ├── jira.agent.md           # Jira MCP integration
-    └── classifier.agent.md     # File-Story association
-
-review/
-└── {yyyy-mm-dd}/
-    ├── quality-todos.md        # Files pending review
-    ├── story-todos.md          # Story info + file associations
-    ├── quality-report.md       # Technical review report
-    └── story-report.md         # Requirement alignment report
+{repository-root}/
+├── .github/
+│   └── agents/
+│       ├── main.agent.md           # Main entry point, orchestration
+│       ├── quality-review.agent.md # General code quality review
+│       ├── sql-review.agent.md     # SQL file review
+│       ├── sp-review.agent.md      # Stored procedure review
+│       ├── requirement-review.agent.md  # Requirement alignment review
+│       ├── jira.agent.md           # Jira MCP integration
+│       └── classifier.agent.md     # File-Story association
+│
+└── review/
+    └── {yyyy-mm-dd}/               # Date of review session (system date)
+        ├── quality-todos.md        # Files pending review
+        ├── story-todos.md          # Story info + file associations
+        ├── quality-report.md       # Technical review report
+        └── story-report.md         # Requirement alignment report
 ```
+
+**Notes:**
+- `{repository-root}/review/` is at the repository root level (NOT inside `.github/`)
+- `{yyyy-mm-dd}` is the system date when the review session starts (e.g., `2025-03-22`)
 
 ## Main Agent Flow
 
@@ -88,6 +93,16 @@ Output summary:
 - Stories reviewed: Y
 - Reports location: `./review/{date}/`
 
+### Main Agent Error Handling
+
+| Error Scenario | Handling |
+|----------------|----------|
+| Git diff fails | Display error message, ask user to retry or skip |
+| Directory creation fails | Log error, abort review session |
+| File write fails | Log error, attempt to continue with next file |
+| No files to review | Display "No changes detected" message, end session |
+| Jira MCP unavailable | Log error, ask user to provide story text manually or skip |
+
 ## Sub Agent Specifications
 
 ### jira.agent.md
@@ -106,18 +121,18 @@ For each Jira ID:
 ### classifier.agent.md
 
 **Input:**
-- `quality-todos.md` (file list with changes)
-- `story-todos.md` (story definitions)
+- `{review-dir}/quality-todos.md` (file list with changes)
+- `{review-dir}/story-todos.md` (story definitions)
 
 **Process:**
-For each file, determine association using:
+For each file, determine association using (in priority order):
 1. File path/naming (e.g., `feature/T01-221/`)
 2. Git commit message (extract story IDs)
-3. LLM semantic inference (compare changes with story)
+3. LLM semantic inference (compare changes with story, confidence threshold: 70%)
 
 **Output:**
 - Update `story-todos.md`, fill "Associated Files" section
-- If no match found, mark as "Unassociated"
+- If confidence < 70% or no match found, mark as "Unassociated"
 
 ### quality-review.agent.md
 
@@ -183,10 +198,10 @@ For each file, determine association using:
 ### requirement-review.agent.md
 
 **Input:**
-- Story ID or Title (e.g., "T01-221")
+- Story ID (e.g., "T01-221") - must match exactly the ID in `story-todos.md`
 
 **Process:**
-1. Read `story-todos.md` to get story details
+1. Read `{review-dir}/story-todos.md` to get story details
 2. Get associated files from `story-todos.md`
 3. Execute git diff for each associated file
 4. Read full file content for context
@@ -199,8 +214,9 @@ For each file, determine association using:
 - Missing implementations
 
 **Error Handling:**
-- If story not found, log error and skip
+- If story ID not found in `story-todos.md`, log error and skip
 - If file read fails, log error and continue with available files
+- If no associated files found, report "No files associated with this story"
 
 ## Intermediate File Formats
 
@@ -220,7 +236,10 @@ For each file, determine association using:
 | 3 | sp/calculate_user_score.sp | sp | pending |
 
 ---
-*Status: pending → reviewed → failed*
+*Status transitions:*
+*- pending: not yet reviewed*
+*- reviewed: review completed successfully*
+*- failed: review process encountered an error*
 ```
 
 ### story-todos.md
@@ -393,3 +412,22 @@ session timeout and incomplete logging. Recommend addressing before merge.
 - **Jira MCP**: Pre-configured in VS Code for Jira integration
 - **Git**: For diff extraction and commit message parsing
 - **File system**: For reading source files and writing reports
+
+## Environment Requirements
+
+| Requirement | Specification |
+|-------------|---------------|
+| VS Code | With GitHub Copilot extension |
+| Git | 2.x or higher |
+| Jira MCP | Configured with valid credentials |
+| Permissions | Write access to `{repository-root}/review/` directory |
+
+## Edge Cases
+
+| Scenario | Handling |
+|----------|----------|
+| No files to review | Generate report with "No changes detected" message |
+| All file reviews fail | Generate report listing failed files with error messages |
+| No stories provided | Skip requirement review, only generate quality report |
+| Jira ID format invalid | Display error, ask user to correct format (e.g., "T01-221") |
+| Empty `quality-todos.md` | End session with "No files in review scope" message |
