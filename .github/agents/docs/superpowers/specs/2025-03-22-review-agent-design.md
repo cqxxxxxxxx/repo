@@ -152,7 +152,7 @@ For each file, determine association using (in priority order):
 - Error handling
 
 **Error Handling:**
-- If file read fails, log error and skip to next file
+- If file read fails, log error, update status to "failed", skip to next file
 
 ### sql-review.agent.md
 
@@ -172,7 +172,7 @@ For each file, determine association using (in priority order):
 - Transaction scope
 
 **Error Handling:**
-- If file read fails, log error and skip to next file
+- If file read fails, log error, update status to "failed", skip to next file
 
 ### sp-review.agent.md
 
@@ -193,7 +193,7 @@ For each file, determine association using (in priority order):
 - Performance (cursor usage, loops)
 
 **Error Handling:**
-- If file read fails, log error and skip to next file
+- If file read fails, log error, update status to "failed", skip to next file
 
 ### requirement-review.agent.md
 
@@ -353,17 +353,17 @@ for better query performance.
 
 ### Acceptance Criteria Status
 
-✅ **PASS** - User can login with Google account
+✅ **PASS** - AC1: User can login with Google account
    - Evidence: AuthService.loginGoogle() L23-45
 
-✅ **PASS** - User can login with GitHub account
+✅ **PASS** - AC2: User can login with GitHub account
    - Evidence: AuthService.loginGitHub() L47-69
 
-⚠️ **PARTIAL** - Failed login attempts are logged
+⚠️ **PARTIAL** - AC3: Failed login attempts are logged
    - Evidence: AuditLogger.logFailedAttempt() L80
    - Gap: Missing IP address in log
 
-❌ **FAIL** - Session expires after 30 min inactivity
+❌ **FAIL** - AC4: Session expires after 30 min inactivity
    - Gap: No session timeout implementation found
 
 ### Feature Coverage
