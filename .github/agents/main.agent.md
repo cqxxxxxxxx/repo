@@ -46,12 +46,21 @@ Ask the user:
    - `.sp` extension → type = "sp"
    - All other files → type = "code"
 
-5. Initialize `quality-report.md` with header:
+5. Initialize both report files:
 
+**quality-report.md:**
 ```markdown
 # Quality Review Report
 **Generated:** {current datetime}
 **Review Scope:** {scope description}
+
+---
+```
+
+**story-report.md:** (initialized early for consistency)
+```markdown
+# Story Review Report
+**Generated:** {current datetime}
 
 ---
 ```
@@ -184,6 +193,15 @@ For each file in `quality-todos.md` (process serially):
    - If successful: status = "reviewed"
    - If failed: status = "failed"
 
+5. **Show Progress Feedback:**
+   - Display: "Reviewed {current}/{total} files - {filename}"
+   - Example: "Reviewed 3/10 files - src/services/UserService.java"
+
+6. **Check for Cancel (every 5 files):**
+   - After every 5 files reviewed, ask: "Continue with remaining files? (Y/n)"
+   - If user says "n" or "no": Stop review, proceed to finalize reports
+   - If user says "y" or "yes" (or presses Enter): Continue with next file
+
 **Error Handling:**
 - If sub-agent fails: Log error, update status to "failed", continue to next file
 - If all files fail: Still generate report with failure summary
@@ -205,9 +223,57 @@ For each story in `story-todos.md`:
 - If story ID not found: Log error, skip to next story
 - If no associated files: Still generate report noting "No files associated"
 
-## Step 6: Complete
+## Step 6: Complete and Finalize Reports
 
-Output a summary to the user:
+**Process:**
+
+1. **Finalize quality-report.md with summary section:**
+   - Append to `quality-report.md`:
+
+```markdown
+---
+
+## Review Summary
+
+**Total Files Reviewed:** {count}
+**Files Passed:** {count}
+**Files Failed:** {count}
+
+**Issues Found:**
+- 🔴 HIGH: {count}
+- 🟡 MEDIUM: {count}
+- 🟢 LOW: {count}
+
+**Top Recommendations:**
+1. {Most critical issue to address}
+2. {Second most critical issue}
+3. {Third most critical issue}
+
+*Report generated on {current datetime}*
+```
+
+2. **Finalize story-report.md with summary section (if stories were reviewed):**
+   - Append to `story-report.md`:
+
+```markdown
+---
+
+## Review Summary
+
+**Total Stories Reviewed:** {count}
+**Acceptance Criteria:**
+- ✅ PASS: {count}
+- ⚠️ PARTIAL: {count}
+- ❌ FAIL: {count}
+
+**Top Gaps:**
+1. {Most critical gap}
+2. {Second most critical gap}
+
+*Report generated on {current datetime}*
+```
+
+3. **Display final summary to user:**
 
 ```
 ## Review Complete
@@ -219,13 +285,12 @@ Output a summary to the user:
 **Generated Reports:**
 - quality-report.md - Technical review findings
 - story-report.md - Requirement alignment (if stories were provided)
+
+**Quick Stats:**
+- Issues found: 🔴 {high} | 🟡 {medium} | 🟢 {low}
+- AC Status: ✅ {pass} | ⚠️ {partial} | ❌ {fail}
 ```
 
-**Process:**
-
-1. Count files with status "reviewed" from `quality-todos.md`
-2. Count stories with status "reviewed" from `story-todos.md`
-3. Display the summary above
 4. Optionally offer to open the reports for the user
 
 ## Error Handling Summary
