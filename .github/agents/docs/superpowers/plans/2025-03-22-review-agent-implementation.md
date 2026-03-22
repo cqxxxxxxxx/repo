@@ -119,8 +119,6 @@ Ask the user:
 
 6. Write `quality-todos.md` with the file list:
 
-4. Write `quality-todos.md` with the file list:
-
 ```markdown
 # Quality Review Todos
 **Generated:** {current datetime}
