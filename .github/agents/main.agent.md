@@ -232,16 +232,32 @@ For each file in `quality-todos.md` (process serially):
 
 **Process:**
 
-For each story in `story-todos.md`:
+For each story in `review-tracker.md` "Story Review Status" table where Status = "pending":
 
-1. Extract the Story ID
-2. Invoke `requirement-review.agent.md` with the Story ID
-3. Wait for sub-agent to complete and append results to `story-report.md`
-4. Update story's "Review Status" in `story-todos.md` to "reviewed"
+1. Read the Story ID from the table
+
+2. **Write sub-agent-input.json for story review:**
+   - Create file: `review/{date}/sub-agent-input.json`
+   - Content:
+   ```json
+   {
+     "story_id": "{story_id}",
+     "review_date": "{current date}",
+     "tracker_file": "review/{date}/review-tracker.md",
+     "report_file": "review/{date}/review-report.md"
+   }
+   ```
+
+3. Invoke `requirement-review.agent.md`
+
+4. Wait for sub-agent to complete and append results to `review-report.md` under "## Story Alignment"
+
+5. Update story's Status in `review-tracker.md` to "reviewed"
 
 **Error Handling:**
 - If story ID not found: Log error, skip to next story
 - If no associated files: Still generate report noting "No files associated"
+- If story Status = "skipped": Do not review, move to next story
 
 ## Step 6: Complete and Finalize Reports
 
