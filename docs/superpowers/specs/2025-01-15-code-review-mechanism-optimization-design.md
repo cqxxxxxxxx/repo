@@ -61,44 +61,68 @@ This document outlines optimizations for the multi-agent code review system, foc
 
 3. **Interactive Clarification Loop:**
 
-   If clarity issues found, present to user:
+   **Batch Detection First:**
+   After fetching all stories, present summary:
 
-   "I found unclear requirements in {jira_id}. Would you like to clarify before review?"
+   "Fetched {total} stories. {n} have unclear requirements:
+   - T01-221: Missing specific acceptance criteria
+   - T01-222: Ambiguous description terms
+   - T01-223: No test cases specified
+
+   How would you like to proceed?"
 
    **Options:**
-   - A) Provide clarifications now
-   - B) Continue with current requirements
-   - C) Skip this story
+   - A) Clarify all unclear stories (interactive loop)
+   - B) Clarify specific stories (select which)
+   - C) Continue with current requirements (all stories)
+   - D) Skip unclear stories (only clear stories reviewed)
 
-   **If user selects A:**
-   For each unclear requirement:
-   - Display: "Requirement: {requirement text}"
-   - Ask specific question: "Please clarify: {specific question about ambiguity}"
-   - Update story data with user's clarification
+   **If A or B selected:**
+   For each selected story:
+   - Display unclear requirement
+   - Ask specific clarification question
+   - Record clarification in story data
+
+   **Update review-tracker.md Story Review Status:**
+   | Story ID | Title | Clarified | Status |
+   |----------|-------|-----------|--------|
+   | T01-221 | User Auth | Yes (2 items) | pending |
+   | T01-222 | Password Reset | No | skipped |
 
 4. **Format and write output** (unchanged)
 ```
 
-**Clarification Triggers:**
-- Acceptance Criteria missing or contains only 1-2 vague items
-- Description uses ambiguous terms: "appropriate", "reasonable", "as needed", "properly"
-- No specific test cases or examples provided
-- Requirements that could be interpreted multiple ways
+**Clarification Detection Algorithm:**
+
+1. **Missing Acceptance Criteria:**
+   - Trigger: AC field empty OR contains fewer than 2 items
+   - Action: Always ask for clarification
+
+2. **Ambiguous Terms (partial list):**
+   - Trigger: Text contains any of: "appropriate", "reasonable", "as needed", "properly", "sufficient", "adequate", "etc.", "and so on"
+   - Action: Highlight term and ask for specificity
+
+3. **Untestable Requirements:**
+   - Trigger: No measurable criteria (numbers, times, specific outputs)
+   - Action: Ask for quantifiable acceptance criteria
 
 **Example Clarification Flow:**
 ```
-Agent: "I found unclear requirements in T01-221. Would you like to clarify before review?"
-User: "A"
+Agent: "Fetched 3 stories. 2 have unclear requirements:
+       - T01-221: Missing specific acceptance criteria
+       - T01-222: Ambiguous description terms
+       How would you like to proceed?"
+User: "A (clarify all)"
 
-Agent: "Requirement: 'System should handle user authentication appropriately'
+Agent: "Story T01-221 - Requirement: 'System should handle user authentication appropriately'
        Please clarify: What specific authentication methods should be supported?"
 User: "Support email/password and OAuth (Google, GitHub)"
 
-Agent: "Requirement: 'User experience should be responsive'
+Agent: "Story T01-222 - Requirement: 'User experience should be responsive'
        Please clarify: What is the target response time and for which operations?"
 User: "Page load < 2 seconds, API responses < 500ms"
 
-Agent: "Clarifications recorded. Proceeding with review."
+Agent: "Clarifications recorded for 2 stories. Proceeding with review."
 ```
 
 ### 2. Main Agent - Eliminate Redundancy
@@ -133,6 +157,59 @@ Agent: "Clarifications recorded. Proceeding with review."
 
 Type determination logic (single source):
 - `.sql` extension → type = "sql", sub-agent = "sql-review"
+- `.sp` extension → type = "sp", sub-agent = "sp-review"
+- All other files → type = "code", sub-agent = "quality-review"
+```
+
+**Step 4 Simplified:**
+```markdown
+## Step 4: Execute Technical Review
+
+For each file in review-tracker.md (process serially):
+
+1. Read sub-agent from "Sub-Agent" column (no re-classification)
+2. Invoke sub-agent with standardized input:
+   - Write `sub-agent-input.json` with file details
+   - file_path, file_type, tracker_file, report_file
+3. Wait for completion
+4. Update status in tracker
+5. Show progress feedback
+6. Check for cancel at smart pause points
+```
+
+**Benefits:**
+- Single classification logic
+- No redundant file scanning
+- Faster execution
+- Consistent metadata
+
+### 2.5 Classifier Agent Adaptation
+
+**Location:** `.github/agents/classifier.agent.md`
+
+**Changes Required:**
+
+**Current Input:**
+- `review/{date}/quality-todos.md`
+- `review/{date}/story-todos.md`
+
+**New Input:**
+- `review/{date}/review-tracker.md` (single source for both file and story tracking)
+
+**Process Update:**
+1. Read file list from "File Review Status" table in review-tracker.md
+2. Read story list from "Story Review Status" table in review-tracker.md
+3. Perform association logic (unchanged)
+4. Update "Associated Files" column in "Story Review Status" table
+5. Do NOT create a new file
+
+**Updated Input Section:**
+```markdown
+## Input
+
+You will read from:
+- `review/{date}/review-tracker.md` - Contains both file list and story definitions
+```
 - `.sp` extension → type = "sp", sub-agent = "sp-review"
 - All other files → type = "code", sub-agent = "quality-review"
 ```
@@ -283,8 +360,13 @@ If Jira MCP fetch fails:
 ```markdown
 ## Step 4: Execute Technical Review (Smart Pauses)
 
-Pause and check for cancel at:
-- After completing each logical file group (all SQL, all Java, etc.)
+**Logical Group Definition:**
+- Files are grouped by file type (sql, sp, code)
+- A group is complete when all files of that type have been reviewed
+- Example: If there are 3 SQL files, pause after all 3 SQL files are done
+
+**Pause Triggers:**
+- After completing each logical file group
 - After 10 files reviewed (whichever comes first)
 - Before starting Step 5 (story review)
 
@@ -297,28 +379,82 @@ Continue? (Y/n)"
 **Sub-Agent Failure Recovery:**
 
 ```markdown
-If sub-agent fails during review:
+### During Review
 
-1. Log error in tracker with details
-2. Mark file status as "failed"
-3. Continue to next file
-4. After completing all files, offer retry:
+When sub-agent returns failure message:
 
-   "Review completed with {n} failures:
-   - ❌ db/migration.sql: File not found
-   - ❌ src/OldService.java: Parse error
+1. **Update review-tracker.md status:**
+   | # | File Path | Type | Sub-Agent | Status | Error |
+   |---|-----------|------|-----------|--------|-------|
+   | 2 | db/migration.sql | sql | sql-review | failed | File not found: db/migration.sql |
 
-   Would you like to retry these files?"
-   - A) Retry failed files
-   - B) Continue without retry
-   - C) Show detailed error logs first
+2. **Log to review-report.md:**
+   ```markdown
+   ### db/migration.sql
+   **Type:** SQL
+   **Status:** ❌ FAILED
+   **Error:** File not found
+   **Timestamp:** 2025-01-15 10:35:00
+   ```
+
+3. **Continue to next file**
+
+### After All Files Processed
+
+If any failures occurred, offer retry:
+
+"Review completed with {n} failures:
+- ❌ db/migration.sql: File not found
+- ❌ src/OldService.java: Parse error
+
+Would you like to retry these files?"
+
+**Options:**
+- A) Retry all failed files (re-invokes sub-agents with same input)
+- B) Retry specific files (user selects which)
+- C) Continue without retry
+
+**Retry Process:**
+For retry, orchestrator:
+1. Resets status to "pending" in tracker
+2. Re-invokes sub-agent with same sub-agent-input.json
+3. Updates status based on new result
 ```
 
 ### 5. Standardized Sub-Agent Protocol
 
+**Sub-Agent Invocation Protocol:**
+
+**Orchestrator Responsibility:**
+When invoking a sub-agent, the orchestrator writes a standardized input file:
+
+**File:** `review/{date}/sub-agent-input.json`
+```json
+{
+  "file_path": "src/UserService.java",
+  "file_type": "code",
+  "review_date": "2025-01-15",
+  "tracker_file": "review/2025-01-15/review-tracker.md",
+  "report_file": "review/2025-01-15/review-report.md"
+}
+```
+
+**Sub-Agent Responsibility:**
+1. Read `review/{date}/sub-agent-input.json`
+2. Parse JSON to extract parameters
+3. Perform specialized review
+4. Append findings to `report_file`
+5. Update status in `tracker_file`
+6. Return status message to orchestrator
+
+**Migration Path:**
+- Phase 1: Update all sub-agents to accept JSON input
+- Phase 2: Update orchestrator to write JSON input file
+- Phase 3: Remove backward compatibility for string input
+
 **Unified Input Contract:**
 
-All sub-agents receive standardized input from orchestrator:
+All sub-agents receive standardized input from orchestrator via JSON file:
 
 ```json
 {
@@ -417,24 +553,23 @@ Append to review-report.md:
 
 ## Files to Modify
 
-1. `.github/agents/jira.agent.md` - Add clarification feature
-2. `.github/agents/main.agent.md` - Major refactoring
-3. `.github/agents/classifier.agent.md` - Adapt to new tracker
-4. `.github/agents/quality-review.agent.md` - Standardize protocol
-5. `.github/agents/sql-review.agent.md` - Standardize protocol
-6. `.github/agents/sp-review.agent.md` - Standardize protocol
-7. `.github/agents/requirement-review.agent.md` - Standardize protocol
+1. `.github/agents/main.agent.md` - Major refactoring (Phase 1)
+2. `.github/agents/classifier.agent.md` - Adapt to new tracker (Phase 1)
+3. `.github/agents/jira.agent.md` - Add clarification feature (Phase 2)
+4. `.github/agents/quality-review.agent.md` - Standardize protocol (Phase 4)
+5. `.github/agents/sql-review.agent.md` - Standardize protocol (Phase 4)
+6. `.github/agents/sp-review.agent.md` - Standardize protocol (Phase 4)
+7. `.github/agents/requirement-review.agent.md` - Standardize protocol (Phase 4)
 
 ## Success Criteria
 
-- ✅ Jira agent can detect unclear requirements and ask clarifying questions
+- ✅ Jira agent can detect unclear requirements and ask clarifying questions (batch mode)
 - ✅ File classification happens only once (no redundancy)
 - ✅ Review session uses only 2 files instead of 4
 - ✅ Error recovery provides graceful degradation options
-- ✅ Cancel logic uses smart pause points
-- ✅ All sub-agents follow standardized I/O protocol
+- ✅ Cancel logic uses smart pause points (logical file groups)
+- ✅ All sub-agents follow standardized I/O protocol (JSON input)
 - ✅ No functionality lost during refactoring
-- ✅ Backward compatibility maintained for existing workflows
 
 ## Risks and Mitigation
 
