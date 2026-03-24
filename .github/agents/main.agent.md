@@ -346,5 +346,7 @@ For each story in `review-tracker.md` "Story Review Status" table where Status =
 | Directory creation fails | Log error, abort review session |
 | File write fails | Log error, attempt to continue |
 | No files to review | Display "No changes detected", end session |
-| Jira MCP unavailable | Log error, ask user for manual input or skip |
-| Sub-agent fails | Log error, mark as failed, continue to next |
+| Jira MCP unavailable | Offer manual input or skip requirement review |
+| Jira fetch partial failure | Show status, offer continue/manual/skip options |
+| Sub-agent fails | Log error in tracker, mark status "failed", continue |
+| All sub-agents fail | Generate report with failure summary, offer retry |
