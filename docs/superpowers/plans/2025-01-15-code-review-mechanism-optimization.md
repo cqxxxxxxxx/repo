@@ -251,26 +251,6 @@ For each story in `review-tracker.md` "Story Review Status" table where Status =
 - If story Status = "skipped": Do not review, move to next story
 ```
 
-```markdown
-## Step 5: Execute Requirement Review
-
-(Skip this step if user selected "Skip requirement review" in Step 2)
-
-**Process:**
-
-For each story in `review-tracker.md` "Story Review Status" table where Status = "pending":
-
-1. Read the Story ID from the table
-2. Invoke `requirement-review.agent.md` with the Story ID
-3. Wait for sub-agent to complete and append results to `review-report.md` under "## Story Alignment"
-4. Update story's Status in `review-tracker.md` to "reviewed"
-
-**Error Handling:**
-- If story ID not found: Log error, skip to next story
-- If no associated files: Still generate report noting "No files associated"
-- If story Status = "skipped": Do not review, move to next story
-```
-
 - [ ] **Step 2: Commit**
 
 ```bash
@@ -279,6 +259,7 @@ git commit -m "feat(main-agent): update Step 5 to use review-tracker.md
 
 - Read story status from review-tracker.md
 - Skip stories with Status = 'skipped'
+- Write sub-agent-input.json for requirement-review
 - Write findings to review-report.md Story Alignment section"
 ```
 
@@ -584,7 +565,7 @@ git commit -m "feat(classifier): adapt to read from review-tracker.md
 
 - [ ] **Step 1: Add clarification detection section after Process section**
 
-After line 68, add:
+After the step 2 content in the "## Process" section, add a new section:
 
 ```markdown
 ## Requirement Completeness Validation
