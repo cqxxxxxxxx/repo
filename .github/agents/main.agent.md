@@ -128,50 +128,38 @@ Ask the user:
 1. **If A (Jira IDs):**
    - Ask: "Please provide the Jira IDs (comma-separated, e.g., T01-221, T01-222)"
    - Invoke `jira.agent.md` with the Jira IDs
-   - This will populate `story-todos.md`
+   - This will populate "Story Review Status" in `review-tracker.md`
 
 2. **If B (Story text):**
    - Ask: "Please paste the story information (include title, description, and acceptance criteria)"
-   - Initialize `story-report.md` with header:
+   - Format the input and add directly to `review-tracker.md` "Story Review Status" table:
 
-```markdown
-# Story Review Report
-**Generated:** {current datetime}
-
----
-```
-
-   - Format the input and write directly to `story-todos.md`:
-
-```markdown
-# Story Review Todos
-**Generated:** {current datetime}
-
----
-
-## Story: {Story ID/Title}
-
-**Description:**
-{user provided description}
-
-**Acceptance Criteria:**
-{user provided acceptance criteria}
-
-**Associated Files:**
-(To be filled by classifier)
-
-**Review Status:** pending
-
----
-```
+   | Story ID | Title | Associated Files | Clarified | Status |
+   |----------|-------|------------------|-----------|--------|
+   | {id} | {title} | (To be filled) | No | pending |
 
 3. **If C (Skip):**
    - Set flag: `skip_requirement_review = true`
    - Proceed directly to Step 4
 
 **Error Handling:**
-- If Jira MCP unavailable: Inform user, suggest option B or C
-- If invalid Jira ID format: Ask user to correct format
+
+- **If Jira MCP unavailable:**
+  "Jira MCP is not available. How would you like to proceed?"
+  - A) Paste story details manually (option B)
+  - B) Skip requirement review (option C)
+
+- **If Jira fetch fails for specific IDs:**
+  "Jira fetch failed for some stories:
+  - ✅ T01-221: Fetched successfully
+  - ❌ T01-222: Fetch failed
+
+  How would you like to proceed?"
+  - A) Continue with fetched stories
+  - B) Paste missing stories manually
+  - C) Skip requirement review
+
+- **If invalid Jira ID format:** Ask user to correct format (should match XX-###)
 
 ## Step 3: Associate Files with Stories
 
