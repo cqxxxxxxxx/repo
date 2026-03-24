@@ -198,32 +198,50 @@ The classifier will:
 
 **Process:**
 
-For each file in `quality-todos.md` (process serially):
+For each file in `review-tracker.md` (process serially):
 
-1. Determine file type:
-   - `.sql` extension → Invoke `sql-review.agent.md`
-   - `.sp` extension → Invoke `sp-review.agent.md`
-   - All other files → Invoke `quality-review.agent.md`
+1. Read sub-agent from "Sub-Agent" column (no re-classification needed)
 
-2. Pass the file path to the sub-agent
+2. **Write sub-agent-input.json:**
+   - Create file: `review/{date}/sub-agent-input.json`
+   - Content:
+   ```json
+   {
+     "file_path": "{file_path}",
+     "file_type": "{type}",
+     "review_date": "{current date}",
+     "tracker_file": "review/{date}/review-tracker.md",
+     "report_file": "review/{date}/review-report.md"
+   }
+   ```
 
-3. Wait for sub-agent to complete and append results to `quality-report.md`
+3. Invoke the sub-agent with the input file
 
-4. Update file status in `quality-todos.md`:
+4. Wait for sub-agent to complete
+
+5. Update file status in `review-tracker.md`:
    - If successful: status = "reviewed"
-   - If failed: status = "failed"
+   - If failed: status = "failed", add Error column with details
 
-5. **Show Progress Feedback:**
+6. **Show Progress Feedback:**
    - Display: "Reviewed {current}/{total} files - {filename}"
    - Example: "Reviewed 3/10 files - src/services/UserService.java"
 
-6. **Check for Cancel (every 5 files):**
-   - After every 5 files reviewed, ask: "Continue with remaining files? (Y/n)"
-   - If user says "n" or "no": Stop review, proceed to finalize reports
-   - If user says "y" or "yes" (or presses Enter): Continue with next file
+7. **Check for Cancel at Smart Pause Points:**
+   - **Logical Group Definition:**
+     - Files grouped by type (sql, sp, code)
+     - Pause after completing all files of one type
+   - **Pause Triggers:**
+     - After completing each logical file group
+     - After 10 files reviewed (whichever comes first)
+     - Before starting Step 5 (story review)
+
+   Ask: "Reviewed {type} files ({count} total). {remaining} files remaining. Continue? (Y/n)"
+   - If "n": Stop review, proceed to finalize reports
+   - If "y" or Enter: Continue with next file
 
 **Error Handling:**
-- If sub-agent fails: Log error, update status to "failed", continue to next file
+- If sub-agent fails: Log error in tracker with Error column, continue to next file
 - If all files fail: Still generate report with failure summary
 
 ## Step 5: Execute Requirement Review
