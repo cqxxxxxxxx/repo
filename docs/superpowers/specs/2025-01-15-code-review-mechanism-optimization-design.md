@@ -210,32 +210,6 @@ For each file in review-tracker.md (process serially):
 You will read from:
 - `review/{date}/review-tracker.md` - Contains both file list and story definitions
 ```
-- `.sp` extension → type = "sp", sub-agent = "sp-review"
-- All other files → type = "code", sub-agent = "quality-review"
-```
-
-**Step 4 Simplified:**
-```markdown
-## Step 4: Execute Technical Review
-
-For each file in review-tracker.md (process serially):
-
-1. Read sub-agent from "Sub-Agent" column (no re-classification)
-2. Invoke sub-agent with standardized input:
-   - file_path
-   - tracker_file: review/{date}/review-tracker.md
-   - report_file: review/{date}/review-report.md
-3. Wait for completion
-4. Update status in tracker
-5. Show progress feedback
-6. Check for cancel at smart pause points
-```
-
-**Benefits:**
-- Single classification logic
-- No redundant file scanning
-- Faster execution
-- Consistent metadata
 
 ### 3. Simplified File Structure
 
