@@ -39,13 +39,13 @@
 ### Task 1.1: Update main.agent.md - File Registry Creation
 
 **Files:**
-- Modify: `.github/agents/main.agent.md` (Step 1 section, lines 40-88)
+- Modify: `.github/agents/main.agent.md` (Step 1 section)
 
 **Goal:** Replace quality-todos.md creation with review-tracker.md that includes both file and story tracking sections.
 
 - [ ] **Step 1: Update Step 1 initialization to create review-tracker.md**
 
-Replace the quality-todos.md creation (lines 50-88) with:
+Replace the quality-todos.md creation section with:
 
 ```markdown
 5. Create file registry and initialize reports:
@@ -131,13 +131,13 @@ git commit -m "feat(main-agent): create review-tracker.md with file and story st
 ### Task 1.2: Update main.agent.md - Simplify Step 4 (Remove Redundancy)
 
 **Files:**
-- Modify: `.github/agents/main.agent.md` (Step 4 section, lines 177-207)
+- Modify: `.github/agents/main.agent.md` (Step 4 section)
 
 **Goal:** Remove duplicate file type classification, read sub-agent from tracker instead.
 
 - [ ] **Step 1: Replace Step 4 with simplified version**
 
-Replace lines 177-207 with:
+Replace the entire Step 4 section with:
 
 ```markdown
 ## Step 4: Execute Technical Review
@@ -208,13 +208,48 @@ git commit -m "feat(main-agent): simplify Step 4 with single classification sour
 ### Task 1.3: Update main.agent.md - Step 5 Story Review
 
 **Files:**
-- Modify: `.github/agents/main.agent.md` (Step 5 section, lines 209-225)
+- Modify: `.github/agents/main.agent.md` (Step 5 section)
 
-**Goal:** Update to read from review-tracker.md instead of story-todos.md.
+**Goal:** Update to read from review-tracker.md instead of story-todos.md, and write JSON input for requirement-review.
 
-- [ ] **Step 1: Update Step 5 to use review-tracker.md**
+- [ ] **Step 1: Replace Step 5 with updated version**
 
-Replace lines 209-225 with:
+Replace the entire Step 5 section with:
+
+```markdown
+## Step 5: Execute Requirement Review
+
+(Skip this step if user selected "Skip requirement review" in Step 2)
+
+**Process:**
+
+For each story in `review-tracker.md` "Story Review Status" table where Status = "pending":
+
+1. Read the Story ID from the table
+
+2. **Write sub-agent-input.json for story review:**
+   - Create file: `review/{date}/sub-agent-input.json`
+   - Content:
+   ```json
+   {
+     "story_id": "{story_id}",
+     "review_date": "{current date}",
+     "tracker_file": "review/{date}/review-tracker.md",
+     "report_file": "review/{date}/review-report.md"
+   }
+   ```
+
+3. Invoke `requirement-review.agent.md`
+
+4. Wait for sub-agent to complete and append results to `review-report.md` under "## Story Alignment"
+
+5. Update story's Status in `review-tracker.md` to "reviewed"
+
+**Error Handling:**
+- If story ID not found: Log error, skip to next story
+- If no associated files: Still generate report noting "No files associated"
+- If story Status = "skipped": Do not review, move to next story
+```
 
 ```markdown
 ## Step 5: Execute Requirement Review
@@ -252,13 +287,13 @@ git commit -m "feat(main-agent): update Step 5 to use review-tracker.md
 ### Task 1.4: Update main.agent.md - Step 6 Finalize Reports
 
 **Files:**
-- Modify: `.github/agents/main.agent.md` (Step 6 section, lines 227-295)
+- Modify: `.github/agents/main.agent.md` (Step 6 section)
 
 **Goal:** Update to use review-tracker.md and review-report.md.
 
-- [ ] **Step 1: Update Step 6 finalization**
+- [ ] **Step 1: Replace Step 6 finalization**
 
-Replace lines 227-295 with:
+Replace the entire Step 6 section with:
 
 ```markdown
 ## Step 6: Complete and Finalize Reports
@@ -339,13 +374,13 @@ git commit -m "feat(main-agent): update Step 6 to use consolidated report files
 ### Task 1.5: Update main.agent.md - Error Recovery
 
 **Files:**
-- Modify: `.github/agents/main.agent.md` (Step 2 section, lines 95-155)
+- Modify: `.github/agents/main.agent.md` (Step 2 section)
 
 **Goal:** Add enhanced error recovery for Jira fetch failures.
 
-- [ ] **Step 1: Update Step 2 error handling**
+- [ ] **Step 1: Replace Step 2 with enhanced error handling**
 
-Replace Step 2 (lines 95-155) with:
+Replace the entire Step 2 section with:
 
 ```markdown
 ## Step 2: Get Story Information
@@ -414,13 +449,13 @@ git commit -m "feat(main-agent): add enhanced error recovery for Jira fetch
 ### Task 1.6: Update main.agent.md - Error Handling Summary
 
 **Files:**
-- Modify: `.github/agents/main.agent.md` (Error Handling Summary section, lines 297-306)
+- Modify: `.github/agents/main.agent.md` (Error Handling Summary section)
 
 **Goal:** Update error handling table for new file structure.
 
-- [ ] **Step 1: Update error handling summary table**
+- [ ] **Step 1: Replace error handling summary table**
 
-Replace lines 297-306 with:
+Replace the entire Error Handling Summary section with:
 
 ```markdown
 ## Error Handling Summary
@@ -457,7 +492,7 @@ git commit -m "docs(main-agent): update error handling summary for new structure
 
 - [ ] **Step 1: Update Input section**
 
-Replace lines 10-14 with:
+Replace the Input section with:
 
 ```markdown
 ## Input
@@ -468,7 +503,7 @@ You will read from:
 
 - [ ] **Step 2: Update Process section**
 
-Replace lines 16-68 with:
+Replace the Process section with:
 
 ```markdown
 ## Process
@@ -604,7 +639,7 @@ git commit -m "feat(jira): add requirement completeness validation
 
 - [ ] **Step 1: Replace Process section with enhanced version**
 
-Replace lines 16-68 with:
+Replace the entire Process section with:
 
 ```markdown
 ## Process
@@ -693,9 +728,9 @@ git commit -m "feat(jira): add interactive batch clarification loop
 
 **Goal:** Update error handling for new workflow.
 
-- [ ] **Step 1: Update Error Handling section**
+- [ ] **Step 1: Replace Error Handling section**
 
-Replace lines 60-68 with:
+Replace the entire Error Handling section with:
 
 ```markdown
 ## Error Handling
@@ -1105,12 +1140,12 @@ git commit -m "feat(sp-review): standardize with JSON input protocol
 
 ---
 
-### Task 4.4: Update requirement-review.agent.md - New Input Source
+### Task 4.4: Update requirement-review.agent.md - JSON Input Protocol
 
 **Files:**
 - Modify: `.github/agents/requirement-review.agent.md`
 
-**Goal:** Update to read from review-tracker.md and write to review-report.md.
+**Goal:** Update to use JSON input protocol like other sub-agents, read from review-tracker.md and write to review-report.md.
 
 - [ ] **Step 1: Replace entire file content**
 
@@ -1128,24 +1163,36 @@ You are a requirement alignment reviewer. Your role is to compare code implement
 
 ## Input
 
-You will receive:
-- **Story ID**: The exact story ID to review (e.g., "T01-221")
-- **Date**: The review date for locating files
+Read the JSON input file: `review/{date}/sub-agent-input.json`
+
+Expected structure:
+```json
+{
+  "story_id": "T01-221",
+  "review_date": "2025-01-15",
+  "tracker_file": "review/2025-01-15/review-tracker.md",
+  "report_file": "review/2025-01-15/review-report.md"
+}
+```
 
 ## Process
 
-1. **Read story details:**
-   - Read `review/{date}/review-tracker.md`
-   - Find the row in "Story Review Status" table matching the Story ID
+1. **Read input file:**
+   - Parse `review/{date}/sub-agent-input.json`
+   - Extract: story_id, tracker_file, report_file
+
+2. **Read story details:**
+   - Read tracker_file
+   - Find the row in "Story Review Status" table matching the story_id
    - Extract: Title, Associated Files, Clarified status
    - If detailed story file exists: Read `review/{date}/stories/{story_id}.md` for full details
 
-2. **Read associated file changes:**
+3. **Read associated file changes:**
    - For each file in "Associated Files" column:
      - Run: `git diff HEAD -- {file_path}`
      - Read the full file for context
 
-3. **Perform alignment review:**
+4. **Perform alignment review:**
 
    **Feature Coverage:**
    - Does the code implement all features described?
@@ -1160,7 +1207,7 @@ You will receive:
    - Are boundary conditions handled?
    - Are error scenarios covered?
 
-4. **Append findings to review-report.md:**
+5. **Append findings to report_file:**
 
 ```markdown
 ### {story_id}: {title}
@@ -1198,6 +1245,10 @@ You will receive:
    - Find the row with matching Story ID in "Story Review Status" table
    - Update Status to "reviewed"
 
+6. **Return status message:**
+   - Success: "✅ Reviewed story {story_id} - {n} ACs checked"
+   - Failure: "❌ Failed to review story {story_id} - {error reason}"
+
 ## Status Definitions
 
 - ✅ **PASS**: Requirement fully implemented with evidence
@@ -1206,6 +1257,7 @@ You will receive:
 
 ## Error Handling
 
+- If input file not found: Return "❌ Failed - Input file not found"
 - If Story ID not found in tracker: Return "❌ Failed - Story ID not found: {story_id}"
 - If no associated files: Output report noting "No files associated with this story"
 - If file read fails: Log error, continue with available files
@@ -1215,11 +1267,13 @@ You will receive:
 
 ```bash
 git add .github/agents/requirement-review.agent.md
-git commit -m "feat(requirement-review): adapt to use review-tracker.md
+git commit -m "feat(requirement-review): standardize with JSON input protocol
 
+- Read from sub-agent-input.json with story_id field
 - Read story details from review-tracker.md
 - Write findings to review-report.md Story Alignment section
-- Update tracker status after review"
+- Update tracker status after review
+- Return standardized status message"
 ```
 
 ---
