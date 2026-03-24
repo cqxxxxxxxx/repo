@@ -263,17 +263,18 @@ For each story in `review-tracker.md` "Story Review Status" table where Status =
 
 **Process:**
 
-1. **Finalize quality-report.md with summary section:**
-   - Append to `quality-report.md`:
+1. **Finalize review-report.md with summary section:**
+   - Append to `review-report.md`:
 
 ```markdown
 ---
 
 ## Review Summary
 
-**Total Files Reviewed:** {count}
-**Files Passed:** {count}
-**Files Failed:** {count}
+**Quality Review:**
+- Files Reviewed: {count}/{total}
+- Files Passed: {count}
+- Files Failed: {count}
 
 **Issues Found:**
 - 🔴 HIGH: {count}
@@ -285,22 +286,12 @@ For each story in `review-tracker.md` "Story Review Status" table where Status =
 2. {Second most critical issue}
 3. {Third most critical issue}
 
-*Report generated on {current datetime}*
-```
-
-2. **Finalize story-report.md with summary section (if stories were reviewed):**
-   - Append to `story-report.md`:
-
-```markdown
----
-
-## Review Summary
-
-**Total Stories Reviewed:** {count}
-**Acceptance Criteria:**
-- ✅ PASS: {count}
-- ⚠️ PARTIAL: {count}
-- ❌ FAIL: {count}
+**Story Review:** (if stories were reviewed)
+- Stories Reviewed: {count}/{total}
+- Acceptance Criteria:
+  - ✅ PASS: {count}
+  - ⚠️ PARTIAL: {count}
+  - ❌ FAIL: {count}
 
 **Top Gaps:**
 1. {Most critical gap}
@@ -309,7 +300,7 @@ For each story in `review-tracker.md` "Story Review Status" table where Status =
 *Report generated on {current datetime}*
 ```
 
-3. **Display final summary to user:**
+2. **Display final summary to user:**
 
 ```
 ## Review Complete
@@ -319,15 +310,15 @@ For each story in `review-tracker.md` "Story Review Status" table where Status =
 **Reports Location:** ./review/{date}/
 
 **Generated Reports:**
-- quality-report.md - Technical review findings
-- story-report.md - Requirement alignment (if stories were provided)
+- review-tracker.md - Status tracking
+- review-report.md - Review findings
 
 **Quick Stats:**
-- Issues found: 🔴 {high} | 🟡 {medium} | 🟢 {low}
+- Issues: 🔴 {high} | 🟡 {medium} | 🟢 {low}
 - AC Status: ✅ {pass} | ⚠️ {partial} | ❌ {fail}
 ```
 
-4. Optionally offer to open the reports for the user
+3. Optionally offer to open the reports for the user
 
 ## Error Handling Summary
 
