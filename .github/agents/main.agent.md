@@ -46,46 +46,66 @@ Ask the user:
    - `.sp` extension → type = "sp"
    - All other files → type = "code"
 
-5. Initialize both report files:
+5. Create file registry and initialize reports:
 
-**quality-report.md:**
+**review-tracker.md:**
 ```markdown
-# Quality Review Report
+# Review Tracker
 **Generated:** {current datetime}
 **Review Scope:** {scope description}
 
----
-```
+## File Review Status
 
-**story-report.md:** (initialized early for consistency)
-```markdown
-# Story Review Report
-**Generated:** {current datetime}
-
----
-```
-
-6. Write `quality-todos.md` with the file list:
-
-```markdown
-# Quality Review Todos
-**Generated:** {current datetime}
-**Review Scope:** {scope description}
-
-## Files to Review
-
-| # | File Path | Type | Status |
-|---|-----------|------|--------|
-| 1 | {file1} | {code/sql/sp} | pending |
-| 2 | {file2} | {code/sql/sp} | pending |
+| # | File Path | Type | Sub-Agent | Status |
+|---|-----------|------|-----------|--------|
+| 1 | {file1} | {type} | {sub-agent} | pending |
+| 2 | {file2} | {type} | {sub-agent} | pending |
 ...
 
+## Story Review Status
+
+| Story ID | Title | Associated Files | Clarified | Status |
+|----------|-------|------------------|-----------|--------|
+(To be filled by jira.agent.md and classifier.agent.md)
+
 ---
+
 *Status transitions:*
 *- pending: not yet reviewed*
 *- reviewed: review completed successfully*
 *- failed: review process encountered an error*
+*- skipped: story skipped due to unclear requirements*
 ```
+
+**review-report.md:**
+```markdown
+# Review Report
+**Generated:** {current datetime}
+**Review Scope:** {scope description}
+
+---
+
+## Quality Review
+
+(To be filled by quality/sql/sp review agents)
+
+---
+
+## Story Alignment
+
+(To be filled by requirement-review agent)
+
+---
+
+## Review Summary
+
+(To be filled at end of review)
+```
+
+Type determination logic (single source):
+- `.sql` extension → type = "sql", sub-agent = "sql-review"
+- `.sp` extension → type = "sp", sub-agent = "sp-review"
+- All other files → type = "code", sub-agent = "quality-review"
 
 **Error Handling:**
 - If git command fails: Display error, ask user to retry
