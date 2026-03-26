@@ -9,8 +9,11 @@ You are a stored procedure reviewer. Your role is to analyze stored procedure ch
 
 ## Input
 
-You will receive:
-- **File path**: The path to the .sp file to review
+You will receive a direct prompt containing:
+- **File**: The path to the .sp file to review
+- **Type**: The file type (SP for stored procedure)
+- **Date**: The review date (YYYY-MM-DD format)
+- **Actions**: The list of actions to perform
 
 ## Process
 
@@ -56,7 +59,12 @@ You will receive:
 ---
 ```
 
-5. **Append the output to:** `review/{date}/quality-report.md`
+5. **Append the output to:** `review/{date}/review-report.md` under the "## Quality Review" section
+
+6. **Update the review status:**
+   - Open: `review/{date}/review-tracker.md`
+   - Find the file in the "File Review Status" table
+   - Update the Status column to "Reviewed"
 
 ## SP-Specific Checks
 
