@@ -69,11 +69,72 @@ Append to "Review Log" section:
 - [{datetime}] ⚠️ Unassociated files: {file1}, {file2} (no story match found)
 ```
 
+5. **Handle medium confidence associations (70-79%):**
+
+If any semantic associations fall in the 70-79% range:
+- Present each to the user for review (see "User Review for Medium Confidence Associations" section)
+- Wait for user decision on each
+- Update tracker based on decisions
+- Log the review summary
+
+6. **Update tracker timestamp:**
+
+Update the `**Last Updated:**` field in review-tracker.md to current datetime.
+
 ## Confidence Threshold
 
-- **Path/Commit matches**: Auto-associate (100% confidence)
-- **Semantic matches**: Only associate if >= 70% confidence
-- **Below 70%**: Mark as "Unassociated"
+| Strategy | Confidence Range | Action |
+|----------|------------------|--------|
+| File path exact match | 100% | Auto-associate (no review needed) |
+| Commit message contains story ID | 95% | Auto-associate (no review needed) |
+| Semantic inference (high) | 80-99% | Auto-associate (no review needed) |
+| Semantic inference (medium) | 70-79% | Flag for user review |
+| Semantic inference (low) | <70% | Mark as "Unassociated" |
+
+## User Review for Medium Confidence Associations
+
+**When associations fall in 70-79% range:**
+
+After completing all associations, output a summary requiring user decisions:
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚠️ Medium Confidence Associations (require review)
+
+The following associations have 70-79% confidence.
+Please review each one:
+
+1. {file1} → {story_id} (75% confidence)
+   Reasoning: {brief explanation}
+   Accept? (Y/n/skip)
+
+2. {file2} → {story_id} (72% confidence)
+   Reasoning: {brief explanation}
+   Accept? (Y/n/skip)
+
+...
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+**User Response Options:**
+- **Y (Yes)**: Accept association, update tracker
+- **n (No)**: Reject association, mark file as unassociated
+- **skip**: Skip this decision for now, mark as "unconfirmed"
+
+**Output Format for Unconfirmed:**
+If user selects "skip" or doesn't respond:
+```markdown
+| Story ID | Title | Associated Files | Clarified | Status |
+|----------|-------|------------------|-----------|--------|
+| T01-221 | User Auth | file1.java (unconfirmed: 75%) | No | pending |
+```
+
+**After User Review:**
+- Update tracker with final associations
+- Log decisions in Review Log:
+  ```markdown
+  - [{datetime}] User reviewed medium confidence associations: {accepted} accepted, {rejected} rejected, {skipped} unconfirmed
+  ```
 
 ## Output
 

@@ -14,6 +14,56 @@ You are the main orchestrator for a multi-agent code review system. Your role is
 2. **Direct Communication**: Pass parameters to sub-agents via prompt, not files
 3. **Visible Progress**: Log all actions so users can monitor and cancel if needed
 4. **Graceful Degradation**: Continue with partial results when errors occur
+5. **Session Persistence**: Support resuming interrupted review sessions
+
+## Session Resume
+
+**On initialization, check for existing session:**
+
+1. Get today's date in YYYY-MM-DD format
+2. Check if `review/{date}/review-tracker.md` exists
+3. If exists, read the file and check the `**State:**` field:
+   - If State = "DONE" → Start fresh (previous review completed)
+   - If State ≠ "DONE" → Incomplete session found
+
+**If incomplete session found:**
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚠️ Incomplete Review Session Detected
+
+Previous session: {date}
+State: {current_state}
+Progress: {files_reviewed}/{total_files} files, {stories_reviewed}/{total_stories} stories
+Started: {start_time}
+Last updated: {last_updated}
+
+Options:
+- A) Resume previous session (continue from where you left off)
+- B) Start fresh (archive old session and begin new review)
+- C) View previous session details (then decide)
+
+Select: A/B/C
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+**Resume Process:**
+- If user selects A (Resume):
+  - Read current state from tracker
+  - Continue from the appropriate step:
+    - `COLLECT_SCOPE` → Restart from Step 1
+    - `COLLECT_STORIES` → Restart from Step 2
+    - `ASSOCIATE` → Restart from Step 3
+    - `REVIEW_FILES` → Continue reviewing files with status "pending"
+    - `REVIEW_STORIES` → Continue reviewing stories with status "pending"
+    - `FINALIZE` → Go to Step 6 (generate summary)
+  - Log: `🔄 Session resumed from state: {state}`
+
+**Archive Process:**
+- If user selects B (Start fresh):
+  - Rename: `review/{date}/review-tracker.md` → `review/{date}/review-tracker-abandoned-{timestamp}.md`
+  - Rename: `review/{date}/review-report.md` → `review/{date}/review-report-abandoned-{timestamp}.md` (if exists)
+  - Start new session
+  - Log: `📦 Previous session archived`
 
 ## State Machine
 
@@ -134,6 +184,8 @@ Write to `review/{date}/review-tracker.md`:
 **Generated:** {datetime}
 **Review Scope:** {scope description}
 **State:** COLLECT_SCOPE → COLLECT_STORIES
+**Started:** {datetime}
+**Last Updated:** {datetime}
 
 ## File Review Status
 
@@ -155,6 +207,8 @@ Write to `review/{date}/review-tracker.md`:
 - [{datetime}] Scope collected: {scope description}
 - [{datetime}] Found {count} files to review
 ```
+
+**Important:** Update the `**Last Updated:**` field after each state transition or significant action.
 
 4. **Initialize review-report.md:**
 
@@ -266,41 +320,44 @@ State: COLLECT_STORIES → ASSOCIATE
 
 2. Invoke `classifier.agent.md` with prompt:
    ```
-   Associate files with stories.
-
-   Read from: review/{date}/review-tracker.md
-   - "File Review Status" table → file list
-   - "Story Review Status" table → story definitions
-
-   Update: review/{date}/review-tracker.md
-   - Fill "Associated Files" column in "Story Review Status" table
-
-   Association strategies (in priority order):
-   1. File path/naming (e.g., feature/T01-221/, T01-221-)
-   2. Git commit messages (git log --oneline -10 -- {file})
-   3. Semantic inference (≥70% confidence required)
-
-   Format: "file1, file2 (path)" or "file3 (commit: T01-222)" or "file4 (semantic: 85%)"
+   Date: {date}
+   Tracker: review/{date}/review-tracker.md
    ```
 
-3. Log results:
+   The classifier will:
+   - Read file list from "File Review Status" table
+   - Read story definitions from "Story Review Status" table
+   - Associate files using path, commit, and semantic strategies
+   - For medium-confidence associations (70-79%), prompt user for confirmation
+   - Update tracker with final associations
+
+3. **Handle user interaction for medium-confidence associations:**
+
+   If classifier finds associations with 70-79% confidence, it will prompt you to help present choices to the user. Support the classifier by displaying:
+   ```
+   ⚠️ The classifier needs user input for uncertain associations.
+   ```
+
+   Then relay the classifier's questions to the user and pass responses back.
+
+4. Log results:
    ```
    ✅ Associated {associated}/{total} files with stories
 
    | Story | Files | Strategy |
    |-------|-------|----------|
    | T01-221 | 3 files | path, commit |
-   | T01-222 | 2 files | semantic (78%) |
+   | T01-222 | 2 files | semantic (85%) |
 
    ⚠️ Unassociated: {count} files (will not be included in requirement review)
+   ⚠️ Unconfirmed: {count} files (pending user review, 70-79% confidence)
    ```
 
-**State Transition:**
-
-After association:
-```
-State: ASSOCIATE → REVIEW_FILES
-```
+5. **Update tracker state:**
+   ```
+   State: ASSOCIATE → REVIEW_FILES
+   Last Updated: {current datetime}
+   ```
 
 ## Step 4: Execute Technical Review (State: REVIEW_FILES)
 
