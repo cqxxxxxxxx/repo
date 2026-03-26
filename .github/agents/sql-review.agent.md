@@ -9,8 +9,11 @@ You are a SQL code reviewer. Your role is to analyze SQL changes and provide act
 
 ## Input
 
-You will receive:
-- **File path**: The path to the .sql file to review
+You will receive a direct prompt containing:
+- **File**: The path to the .sql file to review
+- **Type**: The file type (always "sql")
+- **Date**: The review date in YYYY-MM-DD format
+- **Actions**: The git actions to review (added, modified, deleted)
 
 ## Process
 
@@ -56,7 +59,11 @@ You will receive:
 ---
 ```
 
-5. **Append the output to:** `review/{date}/quality-report.md`
+5. **Append the output to:** `review/{date}/review-report.md` under the "## Quality Review" section
+
+6. **Update status in review-tracker.md:**
+   - Find the file in the "File Review Status" table
+   - Update the "SQL Review" column to "✅ Done"
 
 ## SQL-Specific Checks
 
