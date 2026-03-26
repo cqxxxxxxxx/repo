@@ -67,8 +67,7 @@ Parse the prompt to extract parameters.
 
 6. **Update status in review-tracker.md:**
    - Find the file in the "File Review Status" table
-   - Update the Quality column to "Done"
-   - If all reviews complete, update Overall to "Done"
+   - Update the Status column to "reviewed"
 
 ## Severity Guidelines
 

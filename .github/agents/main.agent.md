@@ -235,6 +235,12 @@ Write to `review/{date}/review-tracker.md`:
 
 ---
 
+## Story Details
+
+(To be filled in Step 2 - stores Description and Acceptance Criteria for each story)
+
+---
+
 ## Review Log
 - [{datetime}] Scope collected: {scope description}
 - [{datetime}] Found {count} files to review
@@ -315,10 +321,27 @@ Ask the user:
 1. Ask: "Please paste the story information. Include: title, description, acceptance criteria"
 2. Parse and format the input
 3. Log: `📝 Adding manual story: {title}...`
-4. Update tracker directly:
-   ```markdown
-   | {id} | {title} | (To be filled) | No | pending |
-   ```
+4. Update tracker:
+   - Add row to "Story Review Status" table:
+     ```markdown
+     | {id} | {title} | (To be filled) | No | pending |
+     ```
+   - Add story details section under "## Story Details":
+     ```markdown
+     ---
+
+     ### Story Details: {id}
+
+     **Title:** {title}
+
+     **Description:**
+     {description}
+
+     **Acceptance Criteria:**
+     - AC1: {criterion 1}
+     - AC2: {criterion 2}
+     ...
+     ```
 
 **C) Skip:**
 

@@ -24,6 +24,8 @@ Parse the prompt to extract parameters.
 1. **Read story details from review-tracker.md:**
    - Find the story in "Story Review Status" table matching the Story ID
    - Extract: Title, Associated Files, Clarified status
+   - Find the "### Story Details: {story_id}" section
+   - Extract: Description, Acceptance Criteria
 
 2. **Read associated file changes:**
    - For each file in "Associated Files" column:

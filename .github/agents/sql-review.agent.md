@@ -68,7 +68,7 @@ Parse the prompt to extract parameters.
 
 6. **Update status in review-tracker.md:**
    - Find the file in the "File Review Status" table
-   - Update the "SQL Review" column to "✅ Done"
+   - Update the Status column to "reviewed"
 
 ## SQL-Specific Checks
 
@@ -76,3 +76,8 @@ Parse the prompt to extract parameters.
 - **Security**: String concatenation in queries, dynamic SQL without parameterization
 - **Data Integrity**: Missing constraints, NULL handling issues, inconsistent data types
 - **Maintainability**: Unclear naming, missing comments on complex logic
+
+## Error Handling
+
+- If file read fails: Output error message, mark as failed in review-tracker.md
+- If no issues found: Output "No issues found" in Summary section

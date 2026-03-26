@@ -56,6 +56,43 @@ Parse the prompt to extract parameters.
    | T01-222 | Password Reset Flow | (To be filled by classifier) | No | pending |
    ```
 
+4. **Add story details section after the table:**
+
+   For each story, add a details section with Description and Acceptance Criteria:
+
+   ```markdown
+   ---
+
+   ### Story Details: {jira_id}
+
+   **Title:** {title}
+
+   **Description:**
+   {description from Jira}
+
+   **Acceptance Criteria:**
+   - AC1: {criterion 1}
+   - AC2: {criterion 2}
+   ...
+   ```
+
+   Example:
+   ```markdown
+   ---
+
+   ### Story Details: T01-221
+
+   **Title:** User Authentication
+
+   **Description:**
+   Implement OAuth2 authentication with Google and GitHub providers.
+
+   **Acceptance Criteria:**
+   - AC1: User can login with Google account
+   - AC2: User can login with GitHub account
+   - AC3: Failed login attempts are logged
+   ```
+
 4. **Log to Review Log section:**
    - Add entry for fetch operation with timestamp
    - Record which Jira IDs were fetched

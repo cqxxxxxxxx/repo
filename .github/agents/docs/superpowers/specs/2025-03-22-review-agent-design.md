@@ -26,15 +26,15 @@ A multi-agent code review system running in VS Code GitHub Copilot. The system p
 │
 └── review/
     └── {yyyy-mm-dd}/               # Date of review session (system date)
-        ├── quality-todos.md        # Files pending review
-        ├── story-todos.md          # Story info + file associations
-        ├── quality-report.md       # Technical review report
-        └── story-report.md         # Requirement alignment report
+        ├── review-tracker.md       # Status tracking + todos (combined)
+        └── review-report.md        # All review findings (combined)
 ```
 
 **Notes:**
 - `{repository-root}/review/` is at the repository root level (NOT inside `.github/`)
 - `{yyyy-mm-dd}` is the system date when the review session starts (e.g., `2025-03-22`)
+- `review-tracker.md` combines file list, story list, associations, and status tracking
+- `review-report.md` combines quality review and story alignment reports
 
 ## Main Agent Flow
 
@@ -220,37 +220,37 @@ For each file, determine association using (in priority order):
 
 ## Intermediate File Formats
 
-### quality-todos.md
+### review-tracker.md
 
 ```markdown
-# Quality Review Todos
+# Review Tracker
 **Generated:** {yyyy-mm-dd HH:mm:ss}
 **Review Scope:** {Current changes / Commits: abc123..def456}
+**State:** {current state}
+**Started:** {datetime}
+**Last Updated:** {datetime}
 
-## Files to Review
+## File Review Status
 
-| # | File Path | Type | Status |
-|---|-----------|------|--------|
-| 1 | src/services/UserService.java | code | pending |
-| 2 | db/migrations/add_user_table.sql | sql | pending |
-| 3 | sp/calculate_user_score.sp | sp | pending |
+| # | File Path | Type | Sub-Agent | Status |
+|---|-----------|------|-----------|--------|
+| 1 | src/services/UserService.java | code | quality-review | pending |
+| 2 | db/migrations/add_user_table.sql | sql | sql-review | pending |
+| 3 | sp/calculate_user_score.sp | sp | sp-review | pending |
 
----
-*Status transitions:*
-*- pending: not yet reviewed*
-*- reviewed: review completed successfully*
-*- failed: review process encountered an error*
-```
+## Story Review Status
 
-### story-todos.md
-
-```markdown
-# Story Review Todos
-**Generated:** {yyyy-mm-dd HH:mm:ss}
+| Story ID | Title | Associated Files | Clarified | Status |
+|----------|-------|------------------|-----------|--------|
+| T01-221 | User Authentication | AuthService.java, AuthController.java | No | pending |
 
 ---
 
-## Story: T01-221 - User Authentication Enhancement
+## Story Details
+
+### Story Details: T01-221
+
+**Title:** User Authentication Enhancement
 
 **Description:**
 Implement OAuth2 authentication with Google and GitHub providers.
@@ -261,30 +261,32 @@ Implement OAuth2 authentication with Google and GitHub providers.
 - AC3: Failed login attempts are logged
 - AC4: Session expires after 30 minutes of inactivity
 
-**Associated Files:**
-- src/services/AuthService.java (path: feature/T01-221/)
-- src/controllers/AuthController.java (commit: T01-221)
-- db/migrations/add_oauth_tables.sql (semantic match)
-
-**Review Status:** pending
-
 ---
 
-## Unassociated Files
-- src/utils/Helper.java (no story match found)
+## Review Log
+- [{datetime}] Scope collected: {scope description}
+- [{datetime}] Found {count} files to review
 ```
+
+*Status transitions:*
+*- pending: not yet reviewed*
+*- reviewed: review completed successfully*
+*- failed: review process encountered an error*
 
 ## Report Output Formats
 
-### quality-report.md
+### review-report.md
 
 ```markdown
-# Quality Review Report
+# Review Report
 **Generated:** {yyyy-mm-dd HH:mm:ss}
 **Review Scope:** {Current changes / Commits: abc123..def456}
 
 ---
 
+## Quality Review
+
+---
 ## File: src/services/UserService.java
 **Review Date:** 2024-01-15 10:30:00
 
@@ -307,7 +309,6 @@ The UserService has a critical security vulnerability in the createUser method.
 Minor improvements needed for null handling and logging. Overall code structure is clean.
 
 ---
-
 ## File: db/migrations/add_user_table.sql
 **Review Date:** 2024-01-15 10:32:00
 
@@ -327,31 +328,13 @@ for better query performance.
 
 ---
 
-## Review Summary
+## Story Alignment
 
-**Total Files Reviewed:** 2
-**Issues Found:** 5
-- 🔴 HIGH: 1
-- 🟡 MEDIUM: 2
-- 🟢 LOW: 2
+### T01-221: User Authentication Enhancement
+**Associated Files:** 2
+**Reviewed:** 2024-01-15 10:35:00
 
-**Recommendations:**
-1. Fix 🔴 HIGH severity SQL injection issue before merge
-2. Review 🟡 MEDIUM issues for potential inclusion
-```
-
-### story-report.md
-
-```markdown
-# Story Review Report
-**Generated:** {yyyy-mm-dd HH:mm:ss}
-
----
-
-## Story: T01-221 - User Authentication Enhancement
-**Review Date:** 2024-01-15 10:35:00
-
-### Acceptance Criteria Status
+**Acceptance Criteria Status:**
 
 ✅ **PASS** - AC1: User can login with Google account
    - Evidence: AuthService.loginGoogle() L23-45
@@ -366,33 +349,55 @@ for better query performance.
 ❌ **FAIL** - AC4: Session expires after 30 min inactivity
    - Gap: No session timeout implementation found
 
-### Feature Coverage
+**Feature Coverage:**
 - ✅ OAuth2 integration: Covered - Google and GitHub providers implemented
 - ⚠️ Error handling: Partial - Missing timeout handling
 - ⚠️ Logging: Partial - Failed attempts logged but incomplete data
 
-### Edge Cases & Gaps
+**Edge Cases & Gaps:**
 - Missing: Session timeout mechanism
 - Missing: IP address in failed login logs
 - Consider: Rate limiting for login attempts
 
-### Summary
-Core OAuth2 functionality is implemented and working. Two gaps identified:
+**Summary:** Core OAuth2 functionality is implemented and working. Two gaps identified:
 session timeout and incomplete logging. Recommend addressing before merge.
 
 ---
 
 ## Review Summary
+**Generated:** {datetime}
 
-**Total Stories Reviewed:** 1
-**Acceptance Criteria:** 4
-- ✅ PASS: 2
-- ⚠️ PARTIAL: 1
-- ❌ FAIL: 1
+### Quality Review
+- **Files Reviewed:** 2/2
+- **Passed:** 2 | **Failed:** 0
 
-**Recommendations:**
-1. Implement session timeout mechanism (AC4)
-2. Enhance failed login logging with IP address
+### Issues Found
+| Severity | Count | Top Issues |
+|----------|-------|------------|
+| 🔴 HIGH | 1 | SQL injection risk in createUser() |
+| 🟡 MEDIUM | 2 | Missing null check, missing index |
+| 🟢 LOW | 2 | Log context, naming convention |
+
+### Top Recommendations
+1. Fix 🔴 HIGH severity SQL injection issue before merge
+2. Add index on email column for query performance
+
+### Story Review
+- **Stories Reviewed:** 1/1
+
+### Acceptance Criteria
+| Status | Count |
+|--------|-------|
+| ✅ PASS | 2 |
+| ⚠️ PARTIAL | 1 |
+| ❌ FAIL | 1 |
+
+### Top Gaps
+1. Session timeout mechanism not implemented (AC4)
+2. Incomplete logging - missing IP address (AC3)
+
+---
+*Report generated on {datetime}*
 ```
 
 ## Design Decisions

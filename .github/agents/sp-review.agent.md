@@ -66,10 +66,9 @@ Parse the prompt to extract parameters.
 
 5. **Append the output to:** `review/{date}/review-report.md` under the "## Quality Review" section
 
-6. **Update the review status:**
-   - Open: `review/{date}/review-tracker.md`
+6. **Update status in review-tracker.md:**
    - Find the file in the "File Review Status" table
-   - Update the Status column to "Reviewed"
+   - Update the Status column to "reviewed"
 
 ## SP-Specific Checks
 
@@ -78,3 +77,8 @@ Parse the prompt to extract parameters.
 - **Parameters**: Input validation, default values, appropriate data types
 - **Transactions**: Proper BEGIN/COMMIT/ROLLBACK, deadlock prevention
 - **Performance**: Avoid cursors when set-based operations work, index usage in loops
+
+## Error Handling
+
+- If file read fails: Output error message, mark as failed in review-tracker.md
+- If no issues found: Output "No issues found" in Summary section
