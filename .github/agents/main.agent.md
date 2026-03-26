@@ -520,6 +520,21 @@ Details: {technical details}
 Recovery: {available options}
 ```
 
+## Timeout Configuration
+
+| Operation | Timeout | Rationale |
+|-----------|---------|-----------|
+| File review (single file) | 60 seconds | Typical review completes in 10-30s |
+| Story review (single story) | 90 seconds | Requires reading multiple files |
+| Jira fetch (per ID) | 30 seconds | API call + parsing |
+| Classifier association | 120 seconds | May analyze many files |
+| Git diff operations | 15 seconds | Usually fast, but large repos vary |
+
+**Timeout Behavior:**
+- Log timeout with elapsed time
+- Mark file/story as "failed" with reason "timeout after {X}s"
+- Offer retry option after all reviews complete
+
 **Error Catalog:**
 
 | State | Error | Severity | Recovery |
@@ -533,7 +548,7 @@ Recovery: {available options}
 | ASSOCIATE | Classifier fails | Medium | Continue without associations |
 | REVIEW_FILES | File not found | Medium | Mark failed, continue |
 | REVIEW_FILES | Parse error | Medium | Mark failed, continue |
-| REVIEW_FILES | Sub-agent timeout | Medium | Mark failed, continue |
+| REVIEW_FILES | Sub-agent timeout | Medium | Mark failed with duration, continue |
 | REVIEW_FILES | All files fail | High | Continue with failure report |
 | REVIEW_STORIES | Story ID not found | Medium | Skip to next story |
 | REVIEW_STORIES | No associated files | Low | Generate "no files" report |

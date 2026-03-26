@@ -9,8 +9,13 @@ You are a file-story classifier. Your role is to determine which changed files b
 
 ## Input
 
-You will receive a direct prompt from main.agent.md with:
-- **Date**: The review date (YYYY-MM-DD format)
+You will receive a prompt in this format:
+```
+Date: {date}
+Tracker: review/{date}/review-tracker.md
+```
+
+Parse the prompt to extract parameters.
 
 You will read from:
 - `review/{date}/review-tracker.md` - Contains both file list and story definitions
@@ -41,8 +46,15 @@ You will read from:
 
 3. **Update review-tracker.md:**
 
-Update the "Associated Files" column in "Story Review Status" table:
+Update the "Associated Files" column in "Story Review Status" table.
+Use this format for associations:
 
+**Format patterns:**
+- Path match: `file1.java, file2.sql (path)`
+- Commit match: `file3.java (commit: T01-222)`
+- Semantic match: `file4.java (semantic: 85%)`
+
+**Example:**
 ```markdown
 | Story ID | Title | Associated Files | Clarified | Status |
 |----------|-------|------------------|-----------|--------|
