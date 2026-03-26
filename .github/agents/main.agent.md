@@ -95,6 +95,38 @@ Select: A/B/C
 5. Execute requirement review (if stories provided)
 6. Output summary
 
+## Progress Verbosity
+
+At the start of each session (after session resume check), ask:
+
+"**Select progress detail level:**"
+
+**Options:**
+- A) Minimal - Start/end summaries only, no per-file progress
+- B) Normal - File-by-file progress with before/after markers [default]
+- C) Verbose - Includes sub-agent details and timing information
+
+**Output by Level:**
+
+| Level | File Review Output | Example |
+|-------|-------------------|---------|
+| Minimal | Summary only | `✅ Technical review complete: 7 files, 3 issues` |
+| Normal | Before/after per file | `📄 Reviewing (3/7): file.java ... ✅ 2 issues found` |
+| Verbose | Full details | `📄 file.java → quality-review.agent.md → Started 10:30:15 → 2 issues (1 HIGH, 1 LOW)` |
+
+| Level | Story Review Output | Example |
+|-------|---------------------|---------|
+| Minimal | Summary only | `✅ Requirement review complete: 2 stories, 5 ACs passed` |
+| Normal | Before/after per story | `📋 Reviewing Story (1/2): T01-221 ... ✅ 3/4 ACs passed` |
+| Verbose | Full details | `📋 T01-221 → requirement-review.agent.md → 3 files analyzed → 3/4 ACs passed` |
+
+**Default:** If no selection made, use Normal (B).
+
+**Store in tracker:**
+```markdown
+**Verbosity:** {minimal|normal|verbose}
+```
+
 ## Step 1: Get Review Scope (State: COLLECT_SCOPE)
 
 Ask the user:
@@ -563,10 +595,137 @@ If yes, re-invoke sub-agents for failed files only.
    Open reports in editor? (Y/n)
    ```
 
+6. **Calculate and display review metrics:**
+
+   **Coverage Analysis:**
+   - Get total changed lines from git diff: `git diff --stat {scope}`
+   - Count lines in reviewed files vs total changed lines
+   - Count functions/methods touched (approximate from diff hunks)
+   - List files skipped with reasons
+
+   **Review Quality Score:**
+   - Calculate average issues per file: `{total_issues} / {files_reviewed}`
+   - Calculate severity distribution percentages
+   - Assess actionability: percentage of issues with clear suggestions
+
+   **Comparison (if previous review exists):**
+   - Check for `review/{date}/review-report-abandoned-*.md` files
+   - Compare issue counts with previous session
+
+   **Append to review-report.md:**
+   ```markdown
+   ---
+
+   ## Review Metrics
+
+   ### Coverage Analysis
+   | Metric | Value |
+   |--------|-------|
+   | Lines reviewed | {reviewed_lines}/{total_lines} ({percent}%) |
+   | Files covered | {reviewed}/{total} |
+   | Files skipped | {count} |
+   | Skipped reasons | {reason list} |
+
+   ### Review Quality Score
+   | Metric | Value | Assessment |
+   |--------|-------|------------|
+   | Issues per file | {avg} | {low/medium/high} |
+   | 🔴 High severity | {percent}% | {actionability} |
+   | 🟡 Medium severity | {percent}% | {actionability} |
+   | 🟢 Low severity | {percent}% | {actionability} |
+   | Actionability | {percent}% | {assessment} |
+
+   **Actionability Guide:**
+   - 90%+ = Excellent (most issues have clear fixes)
+   - 70-89% = Good (majority actionable)
+   - 50-69% = Fair (some vague suggestions)
+   - <50% = Poor (needs more specific recommendations)
+
+   ### Comparison with Previous Review
+   (Only shown if previous review exists)
+
+   | Metric | Current | Previous | Delta |
+   |--------|---------|----------|-------|
+   | Total issues | {n} | {n} | {+n/-n} |
+   | High severity | {n} | {n} | {+n/-n} |
+   | Files reviewed | {n} | {n} | {+n/-n} |
+
+   **New issue types:** {list of issue categories not in previous}
+   **Resolved issues:** {count of issues in previous but not current}
+   ```
+
+   **Display metrics summary to user:**
+   ```
+   📈 Review Metrics
+
+   Coverage: {lines_percent}% lines | {files_percent}% files
+   Quality Score: {avg_issues}/file | {actionability}% actionable
+   Comparison: {delta_summary} (vs previous)
+   ```
+
 **State Transition:**
 ```
 State: FINALIZE → DONE
 ```
+
+## Step 7: Incremental Update (Optional)
+
+**After review complete, offer to add more files:**
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Review complete. Would you like to add more files to this review?
+
+Options:
+- A) Add more files (extend current review)
+- B) Done (no more files to add)
+
+Select: A/B
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+**If user selects A (Add more files):**
+
+1. **Collect new scope:**
+   - Ask: "How would you like to add files?"
+   - Options:
+     - A) Current changes (files not yet reviewed)
+     - B) Specific files (provide paths)
+     - C) Files from another branch/commit
+
+2. **Process new files:**
+   - Run git diff to get new file list
+   - Filter out files already in tracker (check by path)
+   - For each new file:
+     - Determine type and sub-agent
+     - Add to "File Review Status" table with status "pending"
+
+3. **Update tracker:**
+   ```markdown
+   **State:** DONE → REVIEW_FILES (incremental update)
+   **Last Updated:** {datetime}
+
+   ## Review Log
+   - [{datetime}] 📥 Incremental update: {count} new files added
+   ```
+
+4. **Review new files:**
+   - Skip to Step 4 (Execute Technical Review)
+   - Only process files with status "pending"
+   - Sub-agents will append to existing review-report.md
+
+5. **Update summary:**
+   - After new files reviewed, go to Step 6
+   - Regenerate summary with aggregated statistics
+
+**If user selects B (Done):**
+- Session ends normally
+- No further action needed
+
+**Incremental Update Constraints:**
+- Cannot add new stories mid-review (stories must be complete)
+- New files are appended, existing reviews preserved
+- Summary regenerates with combined statistics
 
 ## Error Handling Summary
 
