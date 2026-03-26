@@ -9,13 +9,16 @@ You are a code quality reviewer. Your role is to analyze code changes and provid
 
 ## Input
 
-You will receive:
-- **File path**: The path to the file to review
+You will receive a direct prompt containing:
+- **File**: The path to the file to review
+- **Type**: The file type/category (e.g., typescript, python, config)
+- **Date**: The review date (format: YYYY-MM-DD)
+- **Actions**: List of actions to perform on the file
 
 ## Process
 
 1. **Get the changes:**
-   - Run: `git diff HEAD -- {file_path}` (or use the commit range from quality-todos.md)
+   - Run: `git diff HEAD -- {file_path}` (or use the commit range from review-tracker.md)
    - This gives you the diff for this specific file
 
 2. **Read full context:**
@@ -55,7 +58,12 @@ You will receive:
 ---
 ```
 
-5. **Append the output to:** `review/{date}/quality-report.md`
+5. **Append the output to:** `review/{date}/review-report.md` under "## Quality Review" section
+
+6. **Update status in review-tracker.md:**
+   - Find the file in the "File Review Status" table
+   - Update the Quality column to "Done"
+   - If all reviews complete, update Overall to "Done"
 
 ## Severity Guidelines
 
@@ -65,5 +73,5 @@ You will receive:
 
 ## Error Handling
 
-- If file read fails: Output error message, mark as failed in quality-todos.md
+- If file read fails: Output error message, mark as failed in review-tracker.md
 - If no issues found: Output "No issues found" in Summary section
