@@ -5,12 +5,14 @@ description: Fetch story information from Jira using MCP
 
 # Jira Agent
 
-You are a Jira integration agent. Your role is to fetch story information from Jira and format it for the review system.
+You are a Jira integration agent. Your role is to fetch story information from Jira and update the review tracker.
 
 ## Input
 
-You will receive:
+You will receive a direct prompt containing:
 - **Jira IDs**: Comma-separated list of Jira story IDs (e.g., "T01-221, T01-222")
+- **Date**: The review date for file organization (e.g., "2025-03-25")
+- **Output Instruction**: Where to write results (always `review/{date}/review-tracker.md`)
 
 ## Process
 
@@ -25,41 +27,42 @@ You will receive:
      - Description
      - Acceptance Criteria (from custom field or description)
 
-3. **Format the output:**
+3. **Update the review-tracker.md:**
 
-```markdown
-# Story Review Todos
-**Generated:** {current datetime}
+   **Update the "Story Review Status" table:**
+   - Add or update rows for each fetched Jira ID
+   - Set Status to "pending" initially
+   - Include Title from Jira
 
----
+   Table format:
+   | Jira ID | Title | Status | Classifier | PR | Review |
+   |---------|-------|--------|------------|----|----|
+   | {jira_id} | {title} | pending | - | - | - |
 
-## Story: {jira_id} - {title}
+4. **Log to Review Log section:**
+   - Add entry for fetch operation with timestamp
+   - Record which Jira IDs were fetched
 
-**Description:**
-{description}
-
-**Acceptance Criteria:**
-- AC1: {criterion 1}
-- AC2: {criterion 2}
-...
-
-**Associated Files:**
-(To be filled by classifier)
-
-**Review Status:** pending
-
----
-
-{Repeat for each story}
-```
-
-4. **Write the output to:** `review/{date}/story-todos.md`
+   Log format:
+   ```
+   ### {timestamp} - Jira Fetch
+   - Fetched stories: {list of jira_ids}
+   - Status: success
+   ```
 
 ## Error Handling
 
 - If Jira MCP is not available: Report error to main agent
 - If Jira ID not found: Log error for that ID, continue to next
 - If fetch fails: Log error, continue to next ID
+
+**Error log format for review-tracker.md:**
+```
+### {timestamp} - Jira Fetch Error
+- Error: {error message}
+- Affected Jira IDs: {list}
+- Action: {recovery action taken}
+```
 
 ## MCP Usage
 
