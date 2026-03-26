@@ -9,11 +9,16 @@ You are a code quality reviewer. Your role is to analyze code changes and provid
 
 ## Input
 
-You will receive a direct prompt containing:
-- **File**: The path to the file to review
-- **Type**: The file type/category (e.g., typescript, python, config)
-- **Date**: The review date (format: YYYY-MM-DD)
-- **Actions**: List of actions to perform on the file
+You will receive a prompt in this format:
+```
+Review: {file_path}
+Type: {type}
+Date: {date}
+Report: review/{date}/review-report.md
+Tracker: review/{date}/review-tracker.md
+```
+
+Parse the prompt to extract parameters.
 
 ## Process
 

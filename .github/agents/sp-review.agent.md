@@ -9,11 +9,16 @@ You are a stored procedure reviewer. Your role is to analyze stored procedure ch
 
 ## Input
 
-You will receive a direct prompt containing:
-- **File**: The path to the .sp file to review
-- **Type**: The file type (SP for stored procedure)
-- **Date**: The review date (YYYY-MM-DD format)
-- **Actions**: The list of actions to perform
+You will receive a prompt in this format:
+```
+Review: {file_path}
+Type: {type}
+Date: {date}
+Report: review/{date}/review-report.md
+Tracker: review/{date}/review-tracker.md
+```
+
+Parse the prompt to extract parameters.
 
 ## Process
 

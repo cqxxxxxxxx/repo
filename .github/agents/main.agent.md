@@ -318,33 +318,15 @@ State: ASSOCIATE → REVIEW_FILES
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    ```
 
-   **Invoke sub-agent with direct prompt:**
+   **Invoke sub-agent:**
    ```
-   Review this file for quality, security, and best practices.
+   Invoke {sub-agent}.agent.md with:
 
-   File: {file_path}
+   Review: {file_path}
    Type: {type}
    Date: {date}
-
-   Read the file and run: git diff HEAD -- {file_path}
-
-   Output format:
-   ### {file_path}
-   **Type:** {type}
-   **Reviewed:** {timestamp}
-
-   **Issues:**
-   - 🔴/🟡/🟢 **SEVERITY** - {location}
-     - Description: {issue}
-     - Suggestion: {fix}
-
-   **Summary:** {assessment}
-
-   Actions:
-   1. Append findings to: review/{date}/review-report.md (under "## Quality Review")
-   2. Update status in: review/{date}/review-tracker.md
-      - If successful: status = "reviewed"
-      - If failed: status = "failed", add "Error" column with details
+   Report: review/{date}/review-report.md
+   Tracker: review/{date}/review-tracker.md
    ```
 
    **After review:**
@@ -403,52 +385,12 @@ If yes, re-invoke sub-agents for failed files only.
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    ```
 
-   **Invoke requirement-review.agent.md with direct prompt:**
+   **Invoke requirement-review.agent.md:**
    ```
-   Review this story for requirement alignment.
-
-   Story ID: {story_id}
+   Story: {story_id}
    Date: {date}
-
-   Read from: review/{date}/review-tracker.md
-   - Find story in "Story Review Status" table
-   - Extract: Description, Acceptance Criteria, Associated Files
-
-   For each associated file:
-   - Run: git diff HEAD -- {file_path}
-   - Read full file for context
-
-   Alignment review:
-   - Feature Coverage: Are all features implemented?
-   - Acceptance Criteria: For each AC, determine PASS/PARTIAL/FAIL
-   - Edge Cases: Are boundary conditions and error scenarios handled?
-
-   Output format:
-   ### {story_id}: {title}
-   **Associated Files:** {count}
-   **Reviewed:** {timestamp}
-
-   **Acceptance Criteria Status:**
-   - ✅ PASS - AC{n}: {criterion}
-     - Evidence: {code reference}
-   - ⚠️ PARTIAL - AC{n}: {criterion}
-     - Evidence: {code reference}
-     - Gap: {what's missing}
-   - ❌ FAIL - AC{n}: {criterion}
-     - Gap: {what's missing}
-
-   **Feature Coverage:**
-   - ✅/⚠️ {feature}: {status} - {notes}
-
-   **Edge Cases & Gaps:**
-   - Missing: {gap}
-   - Consider: {suggestion}
-
-   **Summary:** {alignment assessment}
-
-   Actions:
-   1. Append findings to: review/{date}/review-report.md (under "## Story Alignment")
-   2. Update status in: review/{date}/review-tracker.md to "reviewed"
+   Tracker: review/{date}/review-tracker.md
+   Report: review/{date}/review-report.md
    ```
 
    **After review:**

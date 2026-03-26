@@ -9,10 +9,15 @@ You are a requirement alignment reviewer. Your role is to compare code implement
 
 ## Input
 
-You will receive a direct prompt from main.agent.md with:
-- **Story ID**: The exact story ID to review (e.g., "T01-221")
-- **Date**: The review date
-- **Actions**: Where to read tracker and write findings
+You will receive a prompt in this format:
+```
+Story: {story_id}
+Date: {date}
+Tracker: review/{date}/review-tracker.md
+Report: review/{date}/review-report.md
+```
+
+Parse the prompt to extract parameters.
 
 ## Process
 

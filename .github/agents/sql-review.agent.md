@@ -9,11 +9,16 @@ You are a SQL code reviewer. Your role is to analyze SQL changes and provide act
 
 ## Input
 
-You will receive a direct prompt containing:
-- **File**: The path to the .sql file to review
-- **Type**: The file type (always "sql")
-- **Date**: The review date in YYYY-MM-DD format
-- **Actions**: The git actions to review (added, modified, deleted)
+You will receive a prompt in this format:
+```
+Review: {file_path}
+Type: {type}
+Date: {date}
+Report: review/{date}/review-report.md
+Tracker: review/{date}/review-tracker.md
+```
+
+Parse the prompt to extract parameters.
 
 ## Process
 
