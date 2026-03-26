@@ -9,18 +9,19 @@ You are a requirement alignment reviewer. Your role is to compare code implement
 
 ## Input
 
-You will receive:
+You will receive a direct prompt from main.agent.md with:
 - **Story ID**: The exact story ID to review (e.g., "T01-221")
+- **Date**: The review date
+- **Actions**: Where to read tracker and write findings
 
 ## Process
 
-1. **Read story details:**
-   - Read `review/{date}/story-todos.md`
-   - Find the section matching the Story ID exactly
-   - Extract: Description, Acceptance Criteria, Associated Files
+1. **Read story details from review-tracker.md:**
+   - Find the story in "Story Review Status" table matching the Story ID
+   - Extract: Title, Associated Files, Clarified status
 
 2. **Read associated file changes:**
-   - For each file in "Associated Files":
+   - For each file in "Associated Files" column:
      - Run: `git diff HEAD -- {file_path}`
      - Read the full file for context
 
@@ -41,12 +42,12 @@ You will receive:
 
 4. **Generate output in this format:**
 
-```
----
-## Story: {story_id} - {title}
-**Review Date:** {current datetime}
+```markdown
+### {story_id}: {title}
+**Associated Files:** {count}
+**Reviewed:** {current datetime}
 
-### Acceptance Criteria Status
+**Acceptance Criteria Status:**
 
 ✅ **PASS** - AC{n}: {criterion text}
    - Evidence: {code reference}
@@ -58,20 +59,22 @@ You will receive:
 ❌ **FAIL** - AC{n}: {criterion text}
    - Gap: {what's missing}
 
-### Feature Coverage
+**Feature Coverage:**
 - ✅ {feature}: {status} - {notes}
 - ⚠️ {feature}: {status} - {notes}
 
-### Edge Cases & Gaps
+**Edge Cases & Gaps:**
 - Missing: {identified gap}
 - Consider: {suggestion}
 
-### Summary
-{Overall alignment assessment}
----
+**Summary:** {Overall alignment assessment}
 ```
 
-5. **Append the output to:** `review/{date}/story-report.md`
+5. **Append the output to:** `review/{date}/review-report.md` under "## Story Alignment"
+
+6. **Update status in:** `review/{date}/review-tracker.md`
+   - Find the story in "Story Review Status" table
+   - Update Status to "reviewed"
 
 ## Status Definitions
 
@@ -84,3 +87,8 @@ You will receive:
 - If Story ID not found: Report error, cannot proceed
 - If no associated files: Output report noting "No files associated with this story"
 - If file read fails: Log error, continue with available files
+
+**Error Log Format (append to Review Log in tracker):**
+```markdown
+- [{datetime}] ❌ Requirement review failed for {story_id}: {error message}
+```

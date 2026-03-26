@@ -9,15 +9,17 @@ You are a file-story classifier. Your role is to determine which changed files b
 
 ## Input
 
+You will receive a direct prompt from main.agent.md with:
+- **Date**: The review date (YYYY-MM-DD format)
+
 You will read from:
-- `review/{date}/quality-todos.md` - List of files to review
-- `review/{date}/story-todos.md` - Story definitions
+- `review/{date}/review-tracker.md` - Contains both file list and story definitions
 
 ## Process
 
-1. **Read the input files:**
-   - Extract file list from quality-todos.md
-   - Extract story IDs and descriptions from story-todos.md
+1. **Read the input files from review-tracker.md:**
+   - Extract file list from "File Review Status" table
+   - Extract story IDs and descriptions from "Story Review Status" table
 
 2. **For each file, determine association using these strategies (in priority order):**
 
@@ -37,24 +39,22 @@ You will read from:
    - Only associate if confidence >= 70%
    - Output confidence percentage with the association
 
-3. **Update story-todos.md:**
+3. **Update review-tracker.md:**
 
-For each story, update the "Associated Files" section:
+Update the "Associated Files" column in "Story Review Status" table:
 
 ```markdown
-**Associated Files:**
-- {file_path} (path: {reason})
-- {file_path} (commit: {story_id in commit})
-- {file_path} (semantic: 85% confidence)
+| Story ID | Title | Associated Files | Clarified | Status |
+|----------|-------|------------------|-----------|--------|
+| T01-221 | User Auth | file1.java, file2.sql (path) | No | pending |
+| T01-222 | Password Reset | file3.java (commit: T01-222) | No | pending |
 ```
 
-4. **Add unassociated files section:**
+4. **Log unassociated files:**
 
+Append to "Review Log" section:
 ```markdown
----
-
-## Unassociated Files
-- {file_path} (no story match found)
+- [{datetime}] ⚠️ Unassociated files: {file1}, {file2} (no story match found)
 ```
 
 ## Confidence Threshold
@@ -65,5 +65,5 @@ For each story, update the "Associated Files" section:
 
 ## Output
 
-- Update `story-todos.md` in place with associations filled in
+- Update `review-tracker.md` in place with associations filled in
 - Do NOT create a new file, modify the existing one
